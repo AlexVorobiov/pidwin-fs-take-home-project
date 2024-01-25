@@ -1,6 +1,6 @@
 import bcrypt from "bcryptjs";
-import jwt from "jsonwebtoken";
 import User from "../models/user.js";
+import sign from "../utils/sign.js";
 
 const signup = async (req, res) => {
   const { email, password, confirmPassword, firstName, lastName } = req.body;
@@ -21,16 +21,7 @@ const signup = async (req, res) => {
       password: hashedPassword,
       name: `${firstName} ${lastName}`,
     });
-    const token = jwt.sign(
-      {
-        _id: result._id,
-        name: result.name,
-        email: result.email,
-        password: result.hashedPassword,
-      },
-      "test",
-      { expiresIn: "1h" }
-    );
+    const token = sign(result._id, result.name, result.email, result.hashedPassword);
 
     res.status(200).json({ token });
   } catch (error) {

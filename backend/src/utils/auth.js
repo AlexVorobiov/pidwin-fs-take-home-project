@@ -1,5 +1,5 @@
 import jwt from "jsonwebtoken";
-
+import { config } from "../../config/index.js"
 const auth = async (req, res, next) => {
   try {
     const token = req.headers.authorization.split(" ")[1];
@@ -8,7 +8,7 @@ const auth = async (req, res, next) => {
     let decodedData;
 
     if (token && isCustomAuth) {
-      decodedData = jwt.verify(token, "test");
+      decodedData = jwt.verify(token, config.jwtSecret);
       req.userId = decodedData?._id;
     } else {
       decodedData = jwt.decode(token);
