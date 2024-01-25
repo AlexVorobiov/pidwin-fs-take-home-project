@@ -12,9 +12,13 @@ app.use(bodyParser.urlencoded({ limit: "5mb", extended: true }));
 app.use(cors());
 app.use("/api/user", userRouter);
 
-mongoose
-  .connect(config.mongodbURL)
-  .then(() =>
-    app.listen(config.port, () => console.log(`Server Started On Port ${config.port}`))
-  )
-  .catch((error) => console.log(error.message));
+export default app;
+
+if (config.env !== 'test') {
+  mongoose
+      .connect(config.mongodbURL)
+      .then(() =>
+          app.listen(config.port, () => console.log(`Server Started On Port ${config.port}`))
+      )
+      .catch((error) => console.log(error.message));
+}
