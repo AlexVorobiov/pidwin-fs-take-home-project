@@ -42,6 +42,22 @@ describe('SignUp User', () => {
         expect(passwordMatch).toBe(true);
     });
 
+
+    it('Should create add token to user after signup', async () => {
+        const userCredentials = {
+            email: 'test@example.com',
+            password: 'password123',
+            confirmPassword: 'password123',
+            firstName: 'John',
+            lastName: 'Doe',
+        };
+        const res = await server.post('/api/user/signup').send(userCredentials);
+        expect(res.status).toEqual(200);
+        const createdUser = await User.findOne({ email: userCredentials.email });
+        expect(createdUser.tokenAmount).toEqual(100);
+    });
+
+
     it('Should not create user with existing email', async () => {
         const existingUser = {
             email: 'existing@example.com',

@@ -1,6 +1,8 @@
 import bcrypt from "bcryptjs";
 import User from "../models/user.js";
 import sign from "../utils/sign.js";
+import {increaseBalance, BalanceChangeReasons, calculateBalance} from "../services/user-balance.service.js";
+import {config} from '../../config/index.js';
 
 const signup = async (req, res) => {
   const { email, password, confirmPassword, firstName, lastName } = req.body;
@@ -21,7 +23,16 @@ const signup = async (req, res) => {
       password: hashedPassword,
       name: `${firstName} ${lastName}`,
     });
-    const token = sign(result._id, result.name, result.email, result.hashedPassword);
+
+    const userId = result._id.toString();
+
+    const token = sign(userId, result.name, result.email, result.hashedPassword);
+
+    if(config.isSignupBonusEnabled){
+      await increaseBalance(userId, config.signupBonusAmount, BalanceChangeReasons.SIGNUP_BONUS);
+      await calculateBalance(userId)
+    }
+
 
     res.status(200).json({ token });
   } catch (error) {

@@ -34,6 +34,18 @@ const configSchema = convict({
         default: '1h', // Default to 1 hour
         env: 'JWT_EXPIRE_TIME',
     },
+    isSignupBonusEnabled: {
+        doc: 'Whether the signup bonus is enabled.',
+        format: Boolean,
+        default: true,
+        env: 'IS_SIGNUP_BONUS_ENABLED',
+    },
+    signupBonusAmount: {
+        doc: 'The amount of signup bonus.',
+        format: 'int', // Assuming it should be an integer, adjust as needed
+        default: 100,
+        env: 'SIGNUP_BONUS_AMOUNT',
+    },
 });
 
 const env = configSchema.get('env');
