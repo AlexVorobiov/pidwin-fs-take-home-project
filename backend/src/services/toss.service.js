@@ -7,20 +7,19 @@ import {
 } from "./user-balance.service.js"
 import userToss from "../models/user-toss.js";
 import {tossCoin} from "../utils/helpers.js";
-import UserBalance from "../models/user-balance.js";
 import UserToss from "../models/user-toss.js";
 
-async function processToss(userId, usersTossing, wager) {
+async function processToss(userId, toss, wager) {
     const result = tossCoin();
-    const isWon = usersTossing === result;
+    const isWin = toss === result;
 
     const winRowLength = await getWonRowLength(userId);
-
-    if (!isWon) {
+    let multiplayer = -1;
+    let amount = 0;
+    if (!isWin) {
         await decreaseBalance(userId, wager, BalanceChangeReasons.TOSS_LOSE);
     } else {
-        let multiplayer = 2;
-
+        multiplayer = 2;
         switch (winRowLength) {
             case 2:
                 multiplayer = 3;
@@ -29,8 +28,10 @@ async function processToss(userId, usersTossing, wager) {
                 multiplayer = 10;
                 break
             default:
+
         }
-        await increaseBalance(userId, wager * multiplayer, BalanceChangeReasons.TOSS_WIN)
+        amount = wager * multiplayer
+        await increaseBalance(userId, amount, BalanceChangeReasons.TOSS_WIN)
     }
 
     if ([3, 4].includes(winRowLength)) {
@@ -40,11 +41,14 @@ async function processToss(userId, usersTossing, wager) {
     await userToss.create({
         userId,
         result,
-        isWon
+        isWin,
+        bonus: multiplayer,
+        userToss: toss,
+        amount
     });
 
     await updateUserBalance(userId);
-    return isWon;
+    return isWin;
 }
 
 async function getWonRowLength(userId) {
@@ -52,7 +56,7 @@ async function getWonRowLength(userId) {
         {
             $match: {
                 userId: userId,
-                isWon: true,
+                isWin: true,
                 isUsedInRowWon: false
             }
         },
@@ -67,9 +71,8 @@ async function getWonRowLength(userId) {
 }
 
 async function resetWinRow(userId) {
-    const r = await UserToss.find({userId});
     await UserToss.updateMany(
-        {userId, isUsedInRowWon: false, isWon: true},
+        {userId, isUsedInRowWon: false, isWin: true},
         {
             $set: {
                 isUsedInRowWon: true
@@ -82,8 +85,15 @@ async function canUserToss(userId, wager) {
     return balance >= wager
 }
 
+async function getLatestToss(userId, limit = 10) {
+    return UserToss.find({userId})
+        .sort({date: -1})
+        .limit(limit)
+}
+
 module.exports = {
     processToss,
     canUserToss,
-    getWonRowLength
+    getWonRowLength,
+    getLatestToss
 }

@@ -92,8 +92,8 @@ describe('User Toss', () => {
         await mockUserAuth(userId)
         jest.spyOn(Math, 'random').mockImplementationOnce(() => 0.1);
 
-        await UserToss.create({userId, result: TossResults.HEADS, isWon:true});
-        await UserToss.create({userId, result: TossResults.HEADS, isWon:true});
+        await UserToss.create({userId, result: TossResults.HEADS, isWin: true, userToss: TossResults.HEADS});
+        await UserToss.create({userId, result: TossResults.HEADS, isWin: true, userToss: TossResults.HEADS});
 
         await increaseBalance(userId, 40, "test");
 
@@ -115,9 +115,9 @@ describe('User Toss', () => {
         await mockUserAuth(userId)
         jest.spyOn(Math, 'random').mockImplementationOnce(() => 0.6);
 
-        await UserToss.create({userId, result: TossResults.HEADS, isWon:true});
-        await UserToss.create({userId, result: TossResults.HEADS, isWon:true});
-        await UserToss.create({userId, result: TossResults.HEADS, isWon:true});
+        await UserToss.create({userId, result: TossResults.HEADS, isWin: true, userToss: TossResults.HEADS});
+        await UserToss.create({userId, result: TossResults.HEADS, isWin: true, userToss: TossResults.HEADS});
+        await UserToss.create({userId, result: TossResults.HEADS, isWin: true, userToss: TossResults.HEADS});
 
         await increaseBalance(userId, 70, "test");
 
@@ -142,10 +142,10 @@ describe('User Toss', () => {
         await mockUserAuth(userId)
         jest.spyOn(Math, 'random').mockImplementationOnce(() => 0.1);
 
-        await UserToss.create({userId, result: TossResults.HEADS, isWon:true});
-        await UserToss.create({userId, result: TossResults.HEADS, isWon:true});
-        await UserToss.create({userId, result: TossResults.HEADS, isWon:true});
-        await UserToss.create({userId, result: TossResults.HEADS, isWon:true});
+        await UserToss.create({userId, result: TossResults.HEADS, isWin: true, userToss: TossResults.HEADS});
+        await UserToss.create({userId, result: TossResults.HEADS, isWin: true, userToss: TossResults.HEADS});
+        await UserToss.create({userId, result: TossResults.HEADS, isWin: true, userToss: TossResults.HEADS});
+        await UserToss.create({userId, result: TossResults.HEADS, isWin: true, userToss: TossResults.HEADS});
 
         await increaseBalance(userId, 80, "test");
 
@@ -167,10 +167,10 @@ describe('User Toss', () => {
         await mockUserAuth(userId)
         jest.spyOn(Math, 'random').mockImplementationOnce(() => 0.6);
 
-        await UserToss.create({userId, result: TossResults.HEADS, isWon:true});
-        await UserToss.create({userId, result: TossResults.HEADS, isWon:true});
-        await UserToss.create({userId, result: TossResults.HEADS, isWon:true});
-        await UserToss.create({userId, result: TossResults.HEADS, isWon:true});
+        await UserToss.create({userId, result: TossResults.HEADS, isWin: true, userToss: TossResults.HEADS});
+        await UserToss.create({userId, result: TossResults.HEADS, isWin: true, userToss: TossResults.HEADS});
+        await UserToss.create({userId, result: TossResults.HEADS, isWin: true, userToss: TossResults.HEADS});
+        await UserToss.create({userId, result: TossResults.HEADS, isWin: true, userToss: TossResults.HEADS});
 
         await increaseBalance(userId, 80, "test");
 
@@ -184,5 +184,38 @@ describe('User Toss', () => {
 
         const winRowLength = await getWonRowLength(userId);
         expect(winRowLength).toEqual(0);
+    });
+});
+
+describe('User Toss List', () => {
+    it('Should last 10 toss', async () => {
+        const user = await createRegularUser();
+        const userId = user._id.toString();
+        await mockUserAuth(userId)
+
+        for (let i = 0; i < 15; i++) {
+            await UserToss.create({
+                userId,
+                result: TossResults.HEADS,
+                isWin: true,
+                userToss: TossResults.HEADS,
+                date: Date.now()
+            });
+        }
+
+        await increaseBalance(userId, 80, "test");
+
+        const response = await server
+            .get('/api/user/toss');
+        expect(response.body.length).toEqual(10);
+
+        let item = response.body[0];
+
+        expect(item).toHaveProperty('userToss');
+        expect(item).toHaveProperty('result');
+        expect(item).toHaveProperty('isWin');
+        expect(item).toHaveProperty('bonus');
+        expect(item).toHaveProperty('amount');
+        expect(item).toHaveProperty('date');
     });
 });

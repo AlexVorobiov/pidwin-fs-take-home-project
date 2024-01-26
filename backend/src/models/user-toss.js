@@ -6,12 +6,17 @@ const userTossSchema = mongoose.Schema({
         type: String,
         required: true
     },
+    userToss: {
+        type: String,
+        enum: [TossResults.HEADS, TossResults.TAILS],
+        required: true
+    },
     result: {
         type: String,
         enum: [TossResults.HEADS, TossResults.TAILS],
         required: true
     },
-    isWon: {
+    isWin: {
         type: Boolean,
         required: true
     },
@@ -19,8 +24,17 @@ const userTossSchema = mongoose.Schema({
         type: Boolean,
         default: false
     },
+    bonus: {
+        type: Number,
+        default: -1
+    },
+    amount: {
+        type: Number,
+        default: 0
+    },
     date: {
-        type: Date
+        type: Date,
+        default: Date.now()
     }
 });
 
