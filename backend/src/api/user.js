@@ -6,6 +6,7 @@ import auth from "../utils/auth.js";
 import toss from "./toss.js";
 import validate from '../utils/validate.js'
 import {tossValidator} from '../validators/toss.validator.js'
+import ownProfile from "./user-own-profile.js";
 
 
 const router = express.Router();
@@ -13,6 +14,7 @@ const router = express.Router();
 router.post("/login", login);
 router.post("/signup", signup);
 router.post("/changePassword", auth, changePassword);
+router.get("/profile", auth, ownProfile);
 router.post("/toss", auth, validate(tossValidator), toss);
 
 export default router;

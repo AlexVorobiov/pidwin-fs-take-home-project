@@ -4,6 +4,11 @@ import {config} from "../../config/index.js"
 const auth = async (req, res, next) => {
     try {
         const token = req.headers.authorization.split(" ")[1];
+
+        if(!token){
+            return res.status(401).json({ message: "Wrong auth!" });
+        }
+
         const isCustomAuth = token.length < 500;
 
         let decodedData;
