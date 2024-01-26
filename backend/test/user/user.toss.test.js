@@ -5,6 +5,9 @@ import supertest from 'supertest';
 import app from '../../index.js';
 import {createRegularUser, mockUserAuth} from "../utils/user.js";
 import {TossResults} from "../../src/utils/const.js";
+import UserToss from "../../src/models/user-toss.js";
+import {increaseBalance} from "../../src/services/user-balance.service.js";
+import {getWonRowLength} from "../../src/services/toss.service.js";
 
 let mongoServer;
 let server;
@@ -31,7 +34,6 @@ describe('User Toss', () => {
                 wager: 101,
                 toss: TossResults.HEADS, // or 'Tails'
             })
-        console.log(response.body);
         expect(response.status).toBe(400);
         expect(response.body).toEqual({message: 'Insufficient costs'});
     });
@@ -81,5 +83,106 @@ describe('User Toss', () => {
         expect(response.body).toHaveProperty('result');
         expect(response.body.result).toBeFalsy();
         expect(response.body.userTotal).toEqual(90);
+    });
+
+
+    it('Should handle a valid x3 toss', async () => {
+        const user = await createRegularUser();
+        const userId = user._id.toString();
+        await mockUserAuth(userId)
+        jest.spyOn(Math, 'random').mockImplementationOnce(() => 0.1);
+
+        await UserToss.create({userId, result: TossResults.HEADS, isWon:true});
+        await UserToss.create({userId, result: TossResults.HEADS, isWon:true});
+
+        await increaseBalance(userId, 40, "test");
+
+
+        const response = await server
+            .post('/api/user/toss')
+            .send({
+                wager: 10,
+                toss: TossResults.HEADS
+            })
+        expect(response.status).toBe(200);
+        expect(response.body).toHaveProperty('userTotal');
+        expect(response.body.userTotal).toEqual(170);
+    });
+
+    it('Should handle a valid x4 when lose toss', async () => {
+        const user = await createRegularUser();
+        const userId = user._id.toString();
+        await mockUserAuth(userId)
+        jest.spyOn(Math, 'random').mockImplementationOnce(() => 0.6);
+
+        await UserToss.create({userId, result: TossResults.HEADS, isWon:true});
+        await UserToss.create({userId, result: TossResults.HEADS, isWon:true});
+        await UserToss.create({userId, result: TossResults.HEADS, isWon:true});
+
+        await increaseBalance(userId, 70, "test");
+
+
+        const response = await server
+            .post('/api/user/toss')
+            .send({
+                wager: 10,
+                toss: TossResults.HEADS
+            })
+        expect(response.status).toBe(200);
+        expect(response.body).toHaveProperty('userTotal');
+        expect(response.body.userTotal).toEqual(160);
+
+        const winRowLength = await getWonRowLength(userId);
+        expect(winRowLength).toEqual(0);
+    });
+
+    it('Should handle a valid x5 win toss', async () => {
+        const user = await createRegularUser();
+        const userId = user._id.toString();
+        await mockUserAuth(userId)
+        jest.spyOn(Math, 'random').mockImplementationOnce(() => 0.1);
+
+        await UserToss.create({userId, result: TossResults.HEADS, isWon:true});
+        await UserToss.create({userId, result: TossResults.HEADS, isWon:true});
+        await UserToss.create({userId, result: TossResults.HEADS, isWon:true});
+        await UserToss.create({userId, result: TossResults.HEADS, isWon:true});
+
+        await increaseBalance(userId, 80, "test");
+
+        const response = await server
+            .post('/api/user/toss')
+            .send({
+                wager: 10,
+                toss: TossResults.HEADS
+            })
+        expect(response.body.userTotal).toEqual(280);
+
+        const winRowLength = await getWonRowLength(userId);
+        expect(winRowLength).toEqual(1);
+    });
+
+    it('Should handle a valid x5 lose toss', async () => {
+        const user = await createRegularUser();
+        const userId = user._id.toString();
+        await mockUserAuth(userId)
+        jest.spyOn(Math, 'random').mockImplementationOnce(() => 0.6);
+
+        await UserToss.create({userId, result: TossResults.HEADS, isWon:true});
+        await UserToss.create({userId, result: TossResults.HEADS, isWon:true});
+        await UserToss.create({userId, result: TossResults.HEADS, isWon:true});
+        await UserToss.create({userId, result: TossResults.HEADS, isWon:true});
+
+        await increaseBalance(userId, 80, "test");
+
+        const response = await server
+            .post('/api/user/toss')
+            .send({
+                wager: 10,
+                toss: TossResults.HEADS
+            })
+        expect(response.body.userTotal).toEqual(170);
+
+        const winRowLength = await getWonRowLength(userId);
+        expect(winRowLength).toEqual(0);
     });
 });

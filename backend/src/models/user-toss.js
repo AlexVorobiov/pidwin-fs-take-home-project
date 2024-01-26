@@ -15,6 +15,10 @@ const userTossSchema = mongoose.Schema({
         type: Boolean,
         required: true
     },
+    isUsedInRowWon: {
+        type: Boolean,
+        default: false
+    },
     date: {
         type: Date
     }
