@@ -20,6 +20,10 @@ afterAll(async () => {
     await mongoServer.stop();
 });
 
+afterEach(async ()=>{
+    await User.deleteMany({});
+})
+
 describe('SignUp User', () => {
     it('Should create user with valid credentials', async () => {
         const userCredentials = {

@@ -1,7 +1,7 @@
 import bcrypt from "bcryptjs";
 import User from "../models/user.js";
 import sign from "../utils/sign.js";
-import {increaseBalance, BalanceChangeReasons, calculateBalance} from "../services/user-balance.service.js";
+import {increaseBalance, BalanceChangeReasons, updateUserBalance} from "../services/user-balance.service.js";
 import {config} from '../../config/index.js';
 
 const signup = async (req, res) => {
@@ -30,7 +30,7 @@ const signup = async (req, res) => {
 
     if(config.isSignupBonusEnabled){
       await increaseBalance(userId, config.signupBonusAmount, BalanceChangeReasons.SIGNUP_BONUS);
-      await calculateBalance(userId)
+      await updateUserBalance(userId)
     }
 
 

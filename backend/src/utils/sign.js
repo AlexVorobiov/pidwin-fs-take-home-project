@@ -1,16 +1,16 @@
 import jwt from "jsonwebtoken";
-import { config } from "../../config/index.js";
+import {config} from "../../config/index.js";
 
-const sign = function (id, name, email, password){
+const sign = function (id, name, email, password) {
     return jwt.sign(
         {
-            _id:id,
+            _id: id,
             name,
             email,
             password,
         },
         config.jwtSecret,
-        { expiresIn:  config.jwtExpireTime }
+        {expiresIn: config.jwtExpireTime}
     );
 }
 
